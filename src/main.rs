@@ -1,5 +1,9 @@
 use clap::Parser;
-use std::{io::ErrorKind, path::{Path, PathBuf}, process::Command};
+use std::{
+    fs::read_to_string,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -12,20 +16,18 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let file_name = args.file_name;
-    let ext = Path::new(&file_name).extension().unwrap().to_str().unwrap();
-    match ext {
+    match Path::new(&file_name).extension().unwrap().to_str().unwrap() {
         "pdf" => (),
         _ => {
             println!("Wrong extension");
             return;
         }
     };
-
-    let output = match Command::new("pdftotext")
+    match Command::new("pdftotext")
         .args(["-layout", &file_name])
         .output()
     {
-        Ok(d) => (),
+        Ok(_) => (),
         Err(e) => {
             println!("Error while command was executing: {e}");
             return;
@@ -34,6 +36,13 @@ fn main() {
 
     let mut new_file = PathBuf::from(file_name);
     new_file.set_extension("txt");
-    let new_file = new_file.to_str().unwrap().to_string();
-    println!("{new_file}");
+
+    let data = match read_to_string(new_file) {
+        Ok(d) => d,
+        Err(e) => {
+            println!("Error while getting data from text file {e}");
+            return;
+        }
+    };
+    println!("{data}");
 }

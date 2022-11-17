@@ -1,4 +1,5 @@
 use clap::Parser;
+use regex::Regex;
 use std::{
     fs::read_to_string,
     path::{Path, PathBuf},
@@ -44,5 +45,13 @@ fn main() {
             return;
         }
     };
-    println!("{data}");
+    let lines: Vec<String> = data.split("\n").map(|s: &str| s.to_string()).collect();
+    let re = Regex::new(r"^<.*>|/>$").unwrap();
+
+    for line in lines {
+        let cap = re.find(&line);
+        if cap.is_some() {
+        println!("{:?}", cap);
+        }
+    }
 }
